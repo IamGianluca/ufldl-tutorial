@@ -1,2 +1,12 @@
+# pycharm
+.idea
+
+# compressed files
 *.gz
+
+# pickled objects
+*.p
+
+# `ml` package build directory
 build
+ufldl.egg-info

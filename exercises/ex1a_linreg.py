@@ -9,58 +9,51 @@
 #   ''Hedonic prices and the demand for clean air''
 #   J. Environ. Economics & Management, vol.5, 81-102, 1978.
 
-import csv
 
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.optimize import fmin_bfgs
 
-from ml.linear_model import LinearRegression
+from ufldl.linear_model import LinearRegression
+from ufldl.datasets import load_housing
 
 
 if __name__ == '__main__':
-    data = []
-    with open('exercises/data/housing.csv', newline='\n') as csvfile:
-        csvreader = csv.reader(csvfile, delimiter=',')
-        for line in csvreader:
-            data.append(line)
-
-    # convert into numpy ndarray
-    array = np.array(data[1:], dtype=float)
+    array = load_housing()
 
     # add intercept
     ones = np.ones((array.shape[0], 1))
-    x = np.hstack((ones, array))
+    X = np.hstack((ones, array))
 
     # split into train and test sets
-    np.random.shuffle(x)
-    split = int(x.shape[0] * 0.8)
-    train, test = x[:split, :], x[split:, :]
+    np.random.shuffle(X)
+    split = int(X.shape[0] * 0.8)
+    train, test = X[:split, :], X[split:, :]
 
-    train_x, train_y = train[:, :-1], train[:, -1]
-    test_x, test_y = test[:, :-1], test[:, -1]
+    X_train, y_train = train[:, :-1], train[:, -1]
+    X_test, y_test = test[:, :-1], test[:, -1]
 
     model = LinearRegression()
-    model.fit(X=train_x, y=train_y)
-    predicted_train_prices = model.predict(X=train_x)
+    model.fit(X=X_train, y=y_train)
+    predicted_train_prices = model.predict(X=X_train)
 
     # print root mean squared error (RMSE) for training set
-    train_rmse = np.sqrt(np.mean(predicted_train_prices - train_y)**2)
+    train_rmse = np.sqrt(np.mean(predicted_train_prices - y_train) ** 2)
 
     print('Train RMSE: ', train_rmse)
 
     # print RMSE on test set
-    predicted_test_prices = model.predict(X=test_x)
-    test_rmse = np.sqrt(np.mean(predicted_test_prices - test_y)**2)
+    predicted_test_prices = model.predict(X=X_test)
+    test_rmse = np.sqrt(np.mean(predicted_test_prices - y_test) ** 2)
 
     print('Test RMSE: ', test_rmse)
 
     # plot predictions in test data
-    prices = sorted(zip(test_y, predicted_test_prices))
-    plt.scatter(x=range(len(test_y)), y=[y for y, y_hat in prices],
+    prices = sorted(zip(y_test, predicted_test_prices))
+    plt.scatter(x=range(len(y_test)), y=[y for y, y_hat in prices],
                 marker='x', color='red', label='Actual price')
-    plt.scatter(x=range(len(test_y)), y=[y_hat for y, y_hat in prices],
+    plt.scatter(x=range(len(y_test)), y=[y_hat for y, y_hat in prices],
                 marker='x', color='blue', label='Predicted price')
-    plt.xlabel('House #'); plt.ylabel('House price ($1000s)')
+    plt.xlabel('House #')
+    plt.ylabel('House price ($1000s)')
     plt.legend()
     plt.show()

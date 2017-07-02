@@ -1,12 +1,17 @@
-from distutils.core import setup
+from setuptools import find_packages, setup
 
 
 setup(
-    name='ml',
-    version='0.1dev',
+    name='ufldl',
+    version='0.1.dev5',
     description='Python Machine Learning library',
     author='Gianluca Rossi',
     author_email='gr.gianlucarossid@gmail.com',
-    packages=['ml/linear_model', ],
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
+    package_data={
+        'ufldl': ['datasets/data/*.csv', 'datasets/data/*.gz',
+                  'datasets/data/*.p']
+    },
     license='MIT License'
 )

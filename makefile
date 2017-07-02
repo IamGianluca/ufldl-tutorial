@@ -1,8 +1,6 @@
-
-
-install_ml_package:
-	python setup.py install
-
+install:
+	pip uninstall ufldl -y &&\
+	pip install -e .
 
 tests:
 	pytest -s
