@@ -15,13 +15,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import fmin_bfgs
 
-from lin_reg import linear_regression
-from lin_reg import linear_regression_gradient
+from ml.linear_model import LinearRegression
 
 
 if __name__ == '__main__':
     data = []
-    with open('ufldl/data/housing.csv', newline='\n') as csvfile:
+    with open('exercises/data/housing.csv', newline='\n') as csvfile:
         csvreader = csv.reader(csvfile, delimiter=',')
         for line in csvreader:
             data.append(line)
@@ -41,27 +40,20 @@ if __name__ == '__main__':
     train_x, train_y = train[:, :-1], train[:, -1]
     test_x, test_y = test[:, :-1], test[:, -1]
 
-    m, n = train_x.shape
-
-    # initialise the coefficient vector theta to random values
-    theta = np.random.random(n)
-
-    # find values of theta that minimise the loss function
-    theta = fmin_bfgs(linear_regression, theta, args=(train_x, train_y),
-                      fprime=linear_regression_gradient)
+    model = LinearRegression()
+    model.fit(X=train_x, y=train_y)
+    predicted_train_prices = model.predict(X=train_x)
 
     # print root mean squared error (RMSE) for training set
-    predicted_train_prices = train_x @ theta
     train_rmse = np.sqrt(np.mean(predicted_train_prices - train_y)**2)
 
     print('Train RMSE: ', train_rmse)
 
     # print RMSE on test set
-    predicted_test_prices = test_x @ theta
+    predicted_test_prices = model.predict(X=test_x)
     test_rmse = np.sqrt(np.mean(predicted_test_prices - test_y)**2)
 
     print('Test RMSE: ', test_rmse)
-    print('Theta: ', theta)
 
     # plot predictions in test data
     prices = sorted(zip(test_y, predicted_test_prices))
