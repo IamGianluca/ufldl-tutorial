@@ -1,63 +1,116 @@
 import numpy as np
 from scipy.optimize import minimize
 
-
-class RegressionError(Exception):
-    pass
+from .linear import RegressionError
 
 
 class LogisticRegression:
+    """Logistic Regression (aka logit, MaxEnt) classifier.
 
-    def __init__(self, solver='bfgs'):
-        self.solver = solver
-        self._coef = None
+    Args:
+        fit_intercept: (bool), default=True. Specifies if a constant (aka bias
+            or intercept) should be added to the decision function.
+        multi_class: (str), default=`ovr`. Multiclass option can be either
+            `ovr` or ‘multinomial’. If the option chosen is ‘ovr’, then a
+            binary problem is fit for each label. Else the loss minimised is
+            the multinomial loss fit across the entire probability distribution.
+
+    Attributes:
+        coefficients: (array), shape (n_classes, n_features). Coefficient of
+            the features in the decision function.
+    """
+
+    def __init__(self, fit_intercept=True, multi_class='ovr'):
+        self.fit_intercept = fit_intercept
+        self.multi_class = multi_class
+        self.coefficients = None
 
     def fit(self, X, y):
+        """Fit the model according to the given training data.
+
+        Args:
+            X: (array), shape (n_samples, n_features). Training matrix, where
+                n_samples is the number of samples and n_features is the number
+                of features.
+            y: (array), shape (n_samples, ). Target vector relative to X.
+
+        Returns:
+            (self).
+        """
+        if self.multi_class != 'ovr':
+            raise NotImplementedError('Multiclass logistic regression is not '
+                                      'yet implemented.')
         m, n = X.shape
-        theta = np.random.random(n) * 0.001
-        self._coef = minimize(
-            method='L-BFGS-B',
-            fun=self._least_squares_cost_function, args=(X, y), x0=theta,
-            jac=self._least_squares_gradient).x
+
+        if self.fit_intercept:
+            X = np.hstack((np.ones((m, 1)), X))
+            n += 1
+
+        x0 = np.random.random(n) * 0.001
+        self.coefficients = minimize(
+            method='L-BFGS-B', fun=self._cost_function,
+            args=(X, y), x0=x0, jac=self._gradient).x
+        return self
 
     def predict(self, X):
-        if self._coef is None:
-            raise RegressionError
-        return self.sigmoid(np.dot(X, self._coef)) > 0.5
+        """Predict class labels for samples in X.
+
+        Args:
+            X: (array), shape (n_samples, n_features). Samples.
+
+        Returns:
+            (array), shape (n_samples, ). Predicted class label per sample.
+        """
+        if self.coefficients is None:
+            raise RegressionError('You need to first fit the model, before '
+                                  'being able to make any prediction.')
+
+        start = 1 if self.fit_intercept else 0  # drop intercept coefficient
+        predictions = self.sigmoid(np.dot(X, self.coefficients[start:]))
+        return [1 if prediction > .5 else 0 for prediction in predictions]
 
     @staticmethod
     def sigmoid(z):
+        """Sigmoid function.
+
+        Args:
+            z: (float) The input value in the real domain.
+
+        Returns:
+            (float) The output value in the (0, 1) domain.
+        """
         return 1 / (1 + np.exp(-z))
 
-    def _least_squares_cost_function(self, theta, X, y):
-        """Ordinary least squares Linear Regression.
+    def _cost_function(self, theta, X, y):
+        """Loss function for Ordinary Least Squares (OLS) linear regression.
 
         Args:
-            theta [numpy.array]: A vector of size (m, 1) containing the
-              parameter values to optimize.
-            x [numpy.array]: A matrix of size (m, n) containing the training
-              data. x(i, j) is the i'th coordinate of the j'th example.
-            y [numpy.array]: A vector of size (m, 1) with the value of the
-              independent variable. y(j) is the target for example j.
+            theta: (array), shape (n_samples, 1). A vector containing the
+                parameter values to optimize.
+            X: (array), shape (n_samples, n_features) Training matrix, where
+                n_samples is the number of samples and n_features is the number
+                of features.
+            y: (array), shape (n_samples, 1). Target vector relative to X.
+
         Returns:
-            The value [float] of the objective function as a function of theta.
+            (float) The value of the objective function as a function of theta.
         """
-        h = self.sigmoid(np.dot(X, theta))
-        return -np.sum(y * np.log(h) + (1 - y) * np.log(1 - h))
+        hypothesis = self.sigmoid(np.dot(X, theta))
+        return -np.sum(y * np.log(hypothesis) + (1 - y) * np.log(1 - hypothesis))
 
-    def _least_squares_gradient(self, theta, X, y):
-        """Gradient (first derivative) of a linear regression's loss function.
+    def _gradient(self, theta, X, y):
+        """Gradient (aka first derivative) of the linear regression's loss
+        function.
 
         Args:
-            theta [numpy.array]: A vector of size (m, 1) containing the
-              parameter values to optimize.
-            X [numpy.array]: A matrix of size (m, n) containing the training
-              data. x(i, j) is the i'th coordinate of the j'th example.
-            y [numpy.array]: A vector of size (m, 1) with the value of the
-              independent variable. y(j) is the target for example j.
+            theta: (array), shape (n_samples, 1). The parameter values to
+                optimize.
+            X: (array), shape (n_samples, n_features) Training matrix.
+            y: (array), shape (n_samples, 1). Target vector relative to X.
+
         Returns:
-            The gradient (aka derivative or jacobian) as a function of theta.
-            The gradient is a [numpy.array] of size (m, 1).
+            (array), shape (n_samples, 1). The gradient (aka derivative or
+            jacobian) as a function of theta.
         """
         errors = self.sigmoid(X.dot(theta)) - y
         return np.dot(errors, X)

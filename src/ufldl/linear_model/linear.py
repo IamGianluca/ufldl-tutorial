@@ -7,57 +7,87 @@ class RegressionError(Exception):
 
 
 class LinearRegression:
+    """Ordinary least squares Linear Regression.
 
-    def __init__(self, solver='bfgs'):
-        self.solver = solver
-        self._coef = None
+    Args:
+        fit_intercept: (bool), default=True. whether to calculate the intercept
+            for this model. If set to False, no intercept will be used in
+            calculations (e.g. data is expected to be already centered).
+    Attributes:
+        coefficients: (array), shape (n_samples, 1) Estimated coefficients for
+            the linear regression problem.
+    """
+
+    def __init__(self, fit_intercept=True):
+        self.fit_intercept = fit_intercept
+        self.coefficients = None
 
     def fit(self, X, y):
+        """Fit the model according to the given training data.
+
+        Args:
+            X: (array), shape (n_samples, n_features). Training matrix, where
+                n_samples is the number of samples and n_features is the number
+                of features.
+            y: (array), shape (n_samples, ). Target vector relative to X.
+
+        Returns:
+            (self).
+        """
         # initialise the coefficient vector theta
         m, n = X.shape
         theta = np.random.random(n)
 
         # find the values of theta that minimise the cost function
-        self._coef = minimize(
-            self._least_squares_cost_function, theta, args=(X, y),
-            jac=self._least_squares_gradient, method=self.solver).x
+        self.coefficients = minimize(
+            self._cost_function, theta, args=(X, y),
+            jac=self._gradient, method='bfgs').x
+        return self
 
     def predict(self, X):
-        if self._coef is None:
-            raise RegressionError
-        return X @ self._coef
+        """Predict class labels for samples in X.
+
+        Args:
+            X: (array), shape (n_samples, n_features). Samples.
+
+        Returns:
+            (array), shape (n_samples, ). Predicted class label per sample.
+        """
+        if self.coefficients is None:
+            raise RegressionError('You need to first fit the model, before '
+                                  'being able to make any prediction.')
+        return X @ self.coefficients
 
     @staticmethod
-    def _least_squares_cost_function(theta, X, y):
+    def _cost_function(theta, X, y):
         """Ordinary least squares Linear Regression.
 
         Args:
-            theta [numpy.array]: A vector of size (m, 1) containing the
-              parameter values to optimize.
-            X [numpy.array]: A matrix of size (m, n) containing the trainig
-              data. X(i, j) is the i'th coordinate of the j'th example.
-            y [numpy.array]: A vector of size (m, 1) with the value of the
-              independed variable. y(j) is the target for example j.
+            theta: (array), shape (n_samples, 1). A vector containing the
+                parameter values to optimize.
+            X: (array), shape (n_samples, n_features) Training matrix, where
+                n_samples is the number of samples and n_features is the number
+                of features.
+            y: (array), shape (n_samples, 1). Target vector relative to X.
+
         Returns:
-            The value [float] of the objective function as a function of
-            theta.
+            (float) The value of the objective function as a function of theta.
         """
         return 1/2 * (X @ theta - y).T @ (X @ theta - y)
 
     @staticmethod
-    def _least_squares_gradient(theta, X, y):
+    def _gradient(theta, X, y):
         """Gradient (first derivative) of a linear regression's loss
         function.
 
         Args:
-            theta [numpy.array]: A vector of size (m, 1) containing the
-              parameter values to optimize.
-            X [numpy.array]: A matrix of size (m, n) containing the trainig
-              data. X(i, j) is the i'th coordinate of the j'th example.
-            y [numpy.array]: A vector of size (m, 1) with the value of the
-              independed variable. y(j) is the target for example j.
+            theta: (array), shape (n_samples, 1). The parameter values to
+                optimize.
+            X: (array), shape (n_samples, n_features) Training matrix.
+            y: (array), shape (n_samples, 1). Target vector relative to X.
+
         Returns:
-            The gradient (aka derivative or jacobian) as a function of theta.
-            The gradient is a [numpy.array] of size (m, 1).
+            (array), shape (n_samples, 1). The gradient (aka derivative or
+            jacobian) as a function of theta.
         """
         return (X.T @ X @ theta) - (X.T @ y)

@@ -9,4 +9,8 @@
 
 # `ml` package build directory
 build
+dist
 ufldl.egg-info
+
+# jupyter checkpoint
+.ipynb_checkpoints
