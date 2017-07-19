@@ -69,11 +69,14 @@ if __name__ == '__main__':
     predicted_train_digit = model.predict(X=X_train)
     correct = np.sum(y_train == predicted_train_digit)
     train_accuracy = correct / len(y_train)
-    print('Train accuracy: ', train_accuracy)
+    print('Train accuracy: ', '{0:.0f}%'.format(train_accuracy * 100))
 
     # compute accuracy on test set
     X_test, y_test = load_cached_data(type_='test')
     predicted_test_prices = model.predict(X=X_test)
     correct = np.sum(y_test == predicted_test_prices)
     test_accuracy = correct / len(y_test)
-    print('Test accuracy: ', test_accuracy)
+    print('Test accuracy: ', '{0:.0f}%'.format(test_accuracy * 100))
+
+    misclassified = len(y_test) - correct
+    print('Misclassified images: {}'.format(misclassified))

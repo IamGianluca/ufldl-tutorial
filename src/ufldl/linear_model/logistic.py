@@ -8,15 +8,15 @@ class RegressionError(Exception):
 
 class LogisticRegression:
 
-    def __init__(self, solver='bfgs'):
+    def __init__(self, solver='L-BFGS-B'):
         self.solver = solver
         self._coef = None
 
     def fit(self, X, y):
         m, n = X.shape
-        theta = np.random.random(n) * 0.001
+        theta = np.random.random(n) * .001
         self._coef = minimize(
-            method='L-BFGS-B',
+            method=self.solver,
             fun=self._least_squares_cost_function, args=(X, y), x0=theta,
             jac=self._least_squares_gradient).x
 
