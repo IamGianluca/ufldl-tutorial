@@ -36,6 +36,9 @@ class LogisticRegression:
 
         Returns:
             (self).
+
+        Raises:
+            NotImplementedError: Softmax regression is not yet implemented.
         """
         if self.multi_class != 'ovr':
             raise NotImplementedError('Multiclass logistic regression is not '
@@ -60,6 +63,9 @@ class LogisticRegression:
 
         Returns:
             (array), shape (n_samples, ). Predicted class label per sample.
+
+        Raises:
+            RegressionError: `predict` method is called before `fit`.
         """
         if self.coefficients is None:
             raise RegressionError('You need to first fit the model, before '

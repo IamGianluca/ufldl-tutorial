@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='ufldl',
-    version='0.1.dev6',
+    version='0.1.0',
     description='Python Machine Learning library',
     author='Gianluca Rossi',
     author_email='gr.gianlucarossid@gmail.com',

@@ -52,6 +52,9 @@ class LinearRegression:
 
         Returns:
             (array), shape (n_samples, ). Predicted class label per sample.
+
+        Raises:
+            RegressionError: `predict` method is called before `fit`.
         """
         if self.coefficients is None:
             raise RegressionError('You need to first fit the model, before '
